@@ -5,19 +5,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.sharito.demo.micro.compraventacoches2.dto.CompraVentaCochesDto;
 import com.sharito.demo.micro.compraventacoches2.entity.CompraVentaCochesEntity;
 import com.sharito.demo.micro.compraventacoches2.repository.CompraVentaCochesRepository;
 import com.sharito.demo.micro.compraventacoches2.service.CompraVentaCochesService;
 
+@Service
 public class CompraVentaCochesServiceImpl implements CompraVentaCochesService {
 
 	@Autowired
 	private CompraVentaCochesRepository compraVentaCochesRepository;
 
+	@Autowired
+	private RestTemplate resttemplate;
+
 	@Override
 	public CompraVentaCochesDto crear(CompraVentaCochesDto compraVentaCochesDto) {
+		boolean respuestaAuto = resttemplate.getForObject("http://localhost:8080/autos/existe/" + compraVentaCochesDto.getMatricula(), Boolean.class);
+		if (!respuestaAuto) {
+			throw new IllegalArgumentException(" esta matricula no existe");
+
+		}
+		boolean respuestaCliente = resttemplate.getForObject("http://localhost:8083/clientes/existe/" + compraVentaCochesDto.getCodigoCliente() , Boolean.class);
+		if (!respuestaCliente) {
+			throw new IllegalArgumentException(" este cliente no existe");
+		}
+		
+		 boolean respuestaVendedor = resttemplate.getForObject("http://localhost:8081/vendedores/existe/" + compraVentaCochesDto.getCodigoVendedor(), Boolean.class);
+		 if (!respuestaVendedor) {
+				throw new IllegalArgumentException(" este vendedor no existe");
+		}
+
+		
 		CompraVentaCochesEntity compraVentaCochesEntity = new CompraVentaCochesEntity();
 		compraVentaCochesEntity.setCodigoVendedor(compraVentaCochesDto.getCodigoVendedor());
 		compraVentaCochesEntity.setCodigoCliente(compraVentaCochesDto.getCodigoCliente());

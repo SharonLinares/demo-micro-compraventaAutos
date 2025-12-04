@@ -37,10 +37,11 @@ public class CompraVentaCochesController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(compraVentaService.actualizar(compraVentaCochesDto, id));
 	}
 
-	@GetMapping("/listar")
-	public ResponseEntity<List<CompraVentaCochesDto>> consultar() {
+	@GetMapping("/consultarCompraVentaCoches")
+	public ResponseEntity<List<CompraVentaCochesDto>> consultarCompraVentaCoches() {
 		return ResponseEntity.ok(compraVentaService.consultarCompraVentaCoches());
 	}
+	
 
 	@DeleteMapping("/eliminar/{id}")
 	public ResponseEntity<Void> eliminar(@PathVariable Integer id) {

@@ -9,6 +9,7 @@ public class CompraVentaCochesDto {
 	private String matricula;
 	private String tipotransaccion; // solo debe tener dos valores [compra o venta]
 	private LocalDate fechaTransaccion;
+	private AutoDto autoDto;
 
 	public CompraVentaCochesDto() {
 		super();
@@ -63,5 +64,15 @@ public class CompraVentaCochesDto {
 	public void setFechaTransaccion(LocalDate fechaTransaccion) {
 		this.fechaTransaccion = fechaTransaccion;
 	}
+
+	public AutoDto getAutoDto() {
+		return autoDto;
+	}
+
+	public void setAutoDto(AutoDto autoDto) {
+		this.autoDto = autoDto;
+	}
+	
+	
 
 }

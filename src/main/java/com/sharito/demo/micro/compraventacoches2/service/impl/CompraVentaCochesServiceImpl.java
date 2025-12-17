@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.sharito.demo.micro.compraventacoches2.controller.CompraVentaCochesController;
+import com.sharito.demo.micro.compraventacoches2.dto.AutoDto;
 import com.sharito.demo.micro.compraventacoches2.dto.CompraVentaCochesDto;
 import com.sharito.demo.micro.compraventacoches2.entity.CompraVentaCochesEntity;
 import com.sharito.demo.micro.compraventacoches2.repository.CompraVentaCochesRepository;
@@ -41,6 +42,8 @@ public class CompraVentaCochesServiceImpl implements CompraVentaCochesService {
 		if (!respuestaVendedor) {
 			throw new IllegalArgumentException(" este vendedor no existe");
 		}
+		
+		
 
 		CompraVentaCochesEntity compraVentaCochesEntity = new CompraVentaCochesEntity();
 		compraVentaCochesEntity.setCodigoVendedor(compraVentaCochesDto.getCodigoVendedor());
@@ -71,7 +74,13 @@ public class CompraVentaCochesServiceImpl implements CompraVentaCochesService {
 			CompraVentaCochesDto compraVentaCochesDto = new CompraVentaCochesDto();
 			compraVentaCochesDto.setCodigoCliente(compraVentaCochesEntity.getCodigoCliente());
 			compraVentaCochesDto.setMatricula(compraVentaCochesEntity.getMatricula());
-
+			
+			AutoDto autoDto = resttemplate.getForObject("http://localhost:8080/autos/consultarAutoByMatricula/" + compraVentaCochesEntity.getMatricula(), AutoDto.class);
+			
+			compraVentaCochesDto.setAutoDto(autoDto);
+			
+			
+			
 			compraVentaCochesDto.setCodigoVendedor(compraVentaCochesEntity.getCodigoVendedor());
 			compraVentaCochesDto.setFechaTransaccion(compraVentaCochesEntity.getFechaTransaccion());
 			compraVentaCochesDto.setTipotransaccion(compraVentaCochesEntity.getTipotransaccion());
@@ -79,6 +88,8 @@ public class CompraVentaCochesServiceImpl implements CompraVentaCochesService {
 			compraVentaCochesDtos.add(compraVentaCochesDto);
 
 		}
+		
+		
 
 		return compraVentaCochesDtos;
 	}

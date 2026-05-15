@@ -4,10 +4,11 @@ import java.time.LocalDate;
 
 public class CompraVentaCochesDto {
 
+	private Integer id;
 	private String codigoVendedor;
 	private String codigoCliente;
 	private String matricula;
-	private String tipotransaccion; // solo debe tener dos valores [compra o venta]
+	private String tipotransaccion; 
 	private LocalDate fechaTransaccion;
 	private AutoDto autoDto;
 
@@ -15,14 +16,24 @@ public class CompraVentaCochesDto {
 		super();
 	}
 
-	public CompraVentaCochesDto(String codigoVendedor, String codigoCliente, String matricula, String tipotransaccion,
-			LocalDate fechaTransaccion) {
+	public CompraVentaCochesDto(Integer id, String codigoVendedor, String codigoCliente, String matricula,
+			String tipotransaccion, LocalDate fechaTransaccion, AutoDto autoDto) {
 		super();
+		this.id = id;
 		this.codigoVendedor = codigoVendedor;
 		this.codigoCliente = codigoCliente;
 		this.matricula = matricula;
 		this.tipotransaccion = tipotransaccion;
 		this.fechaTransaccion = fechaTransaccion;
+		this.autoDto = autoDto;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
 	}
 
 	public String getCodigoVendedor() {
@@ -72,7 +83,5 @@ public class CompraVentaCochesDto {
 	public void setAutoDto(AutoDto autoDto) {
 		this.autoDto = autoDto;
 	}
-	
-	
 
 }

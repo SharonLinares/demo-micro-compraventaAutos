@@ -4,11 +4,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import com.sharito.demo.micro.compraventacoches2.controller.CompraVentaCochesController;
-import com.sharito.demo.micro.compraventacoches2.dto.AutoDto;
+
 import com.sharito.demo.micro.compraventacoches2.dto.CompraVentaCochesDto;
 import com.sharito.demo.micro.compraventacoches2.entity.CompraVentaCochesEntity;
 import com.sharito.demo.micro.compraventacoches2.repository.CompraVentaCochesRepository;
@@ -17,88 +14,104 @@ import com.sharito.demo.micro.compraventacoches2.service.CompraVentaCochesServic
 @Service
 public class CompraVentaCochesServiceImpl implements CompraVentaCochesService {
 
-	@Autowired
-	private CompraVentaCochesRepository compraVentaCochesRepository;
+	private final CompraVentaCochesRepository repository;
 
-	@Autowired
-	private RestTemplate resttemplate;
-
-	@Override
-	public CompraVentaCochesDto crear(CompraVentaCochesDto compraVentaCochesDto) {
-		boolean respuestaAuto = resttemplate.getForObject(
-				"http://localhost:8080/autos/existe/" + compraVentaCochesDto.getMatricula(), Boolean.class);
-		if (!respuestaAuto) {
-			throw new IllegalArgumentException(" esta matricula no existe");
-
-		}
-		boolean respuestaCliente = resttemplate.getForObject(
-				"http://localhost:8083/clientes/existe/" + compraVentaCochesDto.getCodigoCliente(), Boolean.class);
-		if (!respuestaCliente) {
-			throw new IllegalArgumentException(" este cliente no existe");
-		}
-
-		boolean respuestaVendedor = resttemplate.getForObject(
-				"http://localhost:8081/vendedores/existe/" + compraVentaCochesDto.getCodigoVendedor(), Boolean.class);
-		if (!respuestaVendedor) {
-			throw new IllegalArgumentException(" este vendedor no existe");
-		}
-		
-		
-
-		CompraVentaCochesEntity compraVentaCochesEntity = new CompraVentaCochesEntity();
-		compraVentaCochesEntity.setCodigoVendedor(compraVentaCochesDto.getCodigoVendedor());
-		compraVentaCochesEntity.setCodigoCliente(compraVentaCochesDto.getCodigoCliente());
-		compraVentaCochesEntity.setMatricula(compraVentaCochesDto.getMatricula());
-		compraVentaCochesEntity.setTipotransaccion(compraVentaCochesDto.getTipotransaccion());
-		compraVentaCochesEntity.setFechaTransaccion(LocalDate.now());
-		compraVentaCochesRepository.save(compraVentaCochesEntity);
-
-		return compraVentaCochesDto;
+	public CompraVentaCochesServiceImpl(CompraVentaCochesRepository repository) {
+		this.repository = repository;
 	}
 
 	@Override
-	public CompraVentaCochesDto actualizar(CompraVentaCochesDto compraVentaCochesDto, Integer id) {
-		CompraVentaCochesEntity compraVentaCochesEntity = compraVentaCochesRepository.findById(id).orElse(null);
-		compraVentaCochesEntity.setCodigoCliente(compraVentaCochesDto.getCodigoCliente());
-		compraVentaCochesEntity.setMatricula(compraVentaCochesDto.getMatricula());
-		compraVentaCochesEntity.setFechaTransaccion(LocalDate.now());
-		compraVentaCochesRepository.save(compraVentaCochesEntity);
-		return compraVentaCochesDto;
+	public CompraVentaCochesDto crear(CompraVentaCochesDto dto) {
+
+		validar(dto);
+
+		CompraVentaCochesEntity entity = dtoToEntity(dto);
+		entity.setFechaTransaccion(LocalDate.now());
+
+		return entityToDto(repository.save(entity));
+	}
+
+	@Override
+	public CompraVentaCochesDto actualizar(CompraVentaCochesDto dto, Integer id) {
+
+		CompraVentaCochesEntity existente = repository.findById(id).orElse(null);
+
+		if (existente == null) {
+			throw new IllegalArgumentException("No existe la transacción");
+		}
+		validar(dto);
+
+		CompraVentaCochesEntity actualizado = dtoToEntity(dto);
+		actualizado.setId(existente.getId());
+		actualizado.setFechaTransaccion(LocalDate.now());
+
+		return entityToDto(repository.save(actualizado));
 	}
 
 	@Override
 	public List<CompraVentaCochesDto> consultarCompraVentaCoches() {
-		List<CompraVentaCochesEntity> compraVentaCochesEntities = compraVentaCochesRepository.findAll();
-		List<CompraVentaCochesDto> compraVentaCochesDtos = new ArrayList<>();
-		for (CompraVentaCochesEntity compraVentaCochesEntity : compraVentaCochesEntities) {
-			CompraVentaCochesDto compraVentaCochesDto = new CompraVentaCochesDto();
-			compraVentaCochesDto.setCodigoCliente(compraVentaCochesEntity.getCodigoCliente());
-			compraVentaCochesDto.setMatricula(compraVentaCochesEntity.getMatricula());
-			
-			AutoDto autoDto = resttemplate.getForObject("http://localhost:8080/autos/consultarAutoByMatricula/" + compraVentaCochesEntity.getMatricula(), AutoDto.class);
-			
-			compraVentaCochesDto.setAutoDto(autoDto);
-			
-			
-			
-			compraVentaCochesDto.setCodigoVendedor(compraVentaCochesEntity.getCodigoVendedor());
-			compraVentaCochesDto.setFechaTransaccion(compraVentaCochesEntity.getFechaTransaccion());
-			compraVentaCochesDto.setTipotransaccion(compraVentaCochesEntity.getTipotransaccion());
 
-			compraVentaCochesDtos.add(compraVentaCochesDto);
+		List<CompraVentaCochesDto> lista = new ArrayList<>();
 
+		for (CompraVentaCochesEntity entity : repository.findAll()) {
+			lista.add(entityToDto(entity));
 		}
-		
-		
 
-		return compraVentaCochesDtos;
+		return lista;
 	}
 
 	@Override
 	public void eliminar(Integer id) {
-		if (compraVentaCochesRepository.existsById(id)) {
-			compraVentaCochesRepository.deleteById(id);
+
+		if (!repository.existsById(id)) {
+			throw new IllegalArgumentException("No existe la transacción");
+		}
+
+		repository.deleteById(id);
+	}
+
+
+
+	private void validar(CompraVentaCochesDto dto) {
+
+		if (dto.getCodigoCliente() == null || dto.getCodigoCliente().isEmpty()) {
+			throw new IllegalArgumentException("Cliente obligatorio");
+		}
+
+		if (dto.getCodigoVendedor() == null || dto.getCodigoVendedor().isEmpty()) {
+			throw new IllegalArgumentException("Vendedor obligatorio");
+		}
+
+		if (dto.getMatricula() == null || dto.getMatricula().isEmpty()) {
+			throw new IllegalArgumentException("Matricula obligatoria");
 		}
 	}
 
+
+	private CompraVentaCochesEntity dtoToEntity(CompraVentaCochesDto dto) {
+
+		CompraVentaCochesEntity entity = new CompraVentaCochesEntity();
+
+		entity.setCodigoCliente(dto.getCodigoCliente());
+		entity.setCodigoVendedor(dto.getCodigoVendedor());
+		entity.setMatricula(dto.getMatricula());
+		entity.setTipotransaccion(dto.getTipotransaccion());
+		entity.setFechaTransaccion(dto.getFechaTransaccion());
+
+		return entity;
+	}
+
+	private CompraVentaCochesDto entityToDto(CompraVentaCochesEntity entity) {
+
+		CompraVentaCochesDto dto = new CompraVentaCochesDto();
+
+		dto.setId(entity.getId());
+		dto.setCodigoCliente(entity.getCodigoCliente());
+		dto.setCodigoVendedor(entity.getCodigoVendedor());
+		dto.setMatricula(entity.getMatricula());
+		dto.setTipotransaccion(entity.getTipotransaccion());
+		dto.setFechaTransaccion(entity.getFechaTransaccion());
+
+		return dto;
+	}
 }

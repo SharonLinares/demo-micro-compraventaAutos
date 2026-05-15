@@ -1,5 +1,6 @@
 package com.sharito.demo.micro.compraventacoches2.dto;
 
+
 public class AutoDto {
 
 	public String marca;

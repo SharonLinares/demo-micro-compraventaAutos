@@ -24,7 +24,7 @@ public class CompraVentaCochesEntity {
 	@Column(nullable = false)
 	private String matricula;
 	@Column(nullable = false)
-	private String tipotransaccion; // solo debe tener dos valores [compra o venta]
+	private String tipotransaccion; 
 	@Column(nullable = false)
 	private LocalDate fechaTransaccion;
 

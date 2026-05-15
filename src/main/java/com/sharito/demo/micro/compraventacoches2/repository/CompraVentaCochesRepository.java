@@ -7,8 +7,5 @@ import com.sharito.demo.micro.compraventacoches2.entity.CompraVentaCochesEntity;
 
 @Repository
 public interface CompraVentaCochesRepository extends JpaRepository<CompraVentaCochesEntity, Integer> {
-	
-	
-	
-	
+
 }
